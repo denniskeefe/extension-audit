@@ -66,9 +66,15 @@ Exits with code `1` if any Critical or High findings are present — useful in C
 
 ## Finding installed extensions
 
-Chrome stores extensions at:
+List all installed Chrome extensions with their names and IDs:
+
+```bash
+bash list-extensions.sh
 ```
-~/Library/Application Support/Google/Chrome/Default/Extensions/<id>/<version>/
+
+Then audit one:
+```bash
+python3 audit.py ~/Library/Application\ Support/Google/Chrome/Default/Extensions/<id>/<version>/
 ```
 
 ## Output example
