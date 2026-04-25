@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import io
+import re
 import shutil
 import sys
 import tempfile
@@ -29,12 +30,29 @@ def _extract_zip_bytes(data: bytes, dest: Path):
         zf.extractall(dest)
 
 
+CHROME_EXT_DIR = Path.home() / "Library/Application Support/Google/Chrome/Default/Extensions"
+CHROME_ID_RE = re.compile(r"^[a-z]{32}$")
+
+
+def resolve_chrome_id(ext_id: str) -> Path:
+    ext_dir = CHROME_EXT_DIR / ext_id
+    if not ext_dir.exists():
+        sys.exit(f"Error: Chrome extension '{ext_id}' not found at {ext_dir}")
+    versions = sorted(ext_dir.iterdir())
+    if not versions:
+        sys.exit(f"Error: No version directories found in {ext_dir}")
+    return versions[-1]  # newest version
+
+
 def load_extension(path: str) -> tuple[Path, Path | None]:
     """
     Returns (ext_path, tmp_dir).
     ext_path: directory containing manifest.json
     tmp_dir:  temporary directory to clean up, or None
     """
+    if CHROME_ID_RE.match(path):
+        return resolve_chrome_id(path), None
+
     p = Path(path)
     if not p.exists():
         sys.exit(f"Error: {path} does not exist")
@@ -81,13 +99,14 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 examples:
-  python audit.py ./my-extension/
-  python audit.py extension.crx
-  python audit.py extension.zip --format json --output report.json
-  python audit.py ./ext/ --min-severity high
+  python audit.py fjbgpaheigpmkbdkdfghmkbnkpeofmhh         # Chrome extension ID
+  python audit.py ./my-extension/                           # unpacked directory
+  python audit.py extension.crx                             # .crx file
+  python audit.py extension.zip --format json -o report.json
+  python audit.py fjbgpaheigpmkbdkdfghmkbnkpeofmhh --min-severity high
         """,
     )
-    parser.add_argument("extension", help="Extension directory, .crx file, or .zip file")
+    parser.add_argument("extension", help="Extension directory, .crx/.zip file, or Chrome extension ID (32-char)")
     parser.add_argument(
         "--format", "-f",
         choices=["text", "json"],
