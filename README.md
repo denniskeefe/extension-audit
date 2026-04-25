@@ -69,10 +69,10 @@ Exits with code `1` if any Critical or High findings are present — useful in C
 
 ## Finding installed extensions
 
-List all installed Chrome extensions with their names and IDs:
+List all installed Chrome/Chromium extensions across all profiles (Mac, Windows, Linux):
 
 ```bash
-bash list-extensions.sh
+python3 list-extensions.py
 ```
 
 Then pass the ID directly — no need to find the version folder:
