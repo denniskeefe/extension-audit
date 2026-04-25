@@ -460,6 +460,7 @@ class CodeAnalyzer:
 
     def analyze(self, report: Report):
         js_files = sorted(self.ext_path.rglob("*.js"))
+        minified: List[str] = []
 
         for js_path in js_files:
             rel = str(js_path.relative_to(self.ext_path))
@@ -469,16 +470,20 @@ class CodeAnalyzer:
                 continue
 
             if _is_minified(content):
-                report.add(Finding(
-                    severity=Severity.MEDIUM,
-                    category="Obfuscation",
-                    title=f"Minified/obfuscated JS: {rel}",
-                    description="File is minified or has suspiciously long lines — static analysis is limited and intent is harder to audit.",
-                    file=rel,
-                    recommendation="Request an un-minified source map or the original source.",
-                ))
+                minified.append(rel)
+                continue  # skip pattern scanning — too many false positives on minified code
 
             self._scan_file(content, rel, report)
+
+        if minified:
+            file_list = "\n".join(f"  • {f}" for f in minified)
+            report.add(Finding(
+                severity=Severity.MEDIUM,
+                category="Obfuscation",
+                title=f"{len(minified)} minified JS file(s) — static analysis skipped",
+                description=f"These files are minified or bundled. Pattern scanning was skipped to avoid false positives.\n{file_list}",
+                recommendation="Review source maps or original source; audit network requests made by the extension at runtime.",
+            ))
 
     def _scan_file(self, content: str, rel_path: str, report: Report):
         lines = content.splitlines()

@@ -38,10 +38,10 @@ def resolve_chrome_id(ext_id: str) -> Path:
     ext_dir = CHROME_EXT_DIR / ext_id
     if not ext_dir.exists():
         sys.exit(f"Error: Chrome extension '{ext_id}' not found at {ext_dir}")
-    versions = sorted(ext_dir.iterdir())
+    versions = [d for d in sorted(ext_dir.iterdir()) if d.is_dir() and (d / "manifest.json").exists()]
     if not versions:
-        sys.exit(f"Error: No version directories found in {ext_dir}")
-    return versions[-1]  # newest version
+        sys.exit(f"Error: No valid version directories found in {ext_dir}")
+    return versions[-1]  # newest version with a manifest
 
 
 def load_extension(path: str) -> tuple[Path, Path | None]:
