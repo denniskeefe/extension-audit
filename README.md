@@ -46,6 +46,9 @@ pip install -r requirements.txt   # optional: colorama for colored output
 ## Usage
 
 ```bash
+# Audit an installed Chrome extension by ID (easiest)
+python3 audit.py fcoeoabgfenejglbffodgkkbkcdhcgfn
+
 # Unpacked extension directory
 python3 audit.py ./my-extension/
 
@@ -56,10 +59,10 @@ python3 audit.py extension.crx
 python3 audit.py extension.zip
 
 # Only show high severity and above
-python3 audit.py ./ext/ --min-severity high
+python3 audit.py <id> --min-severity high
 
 # JSON output (for scripting or saving)
-python3 audit.py ./ext/ --format json --output report.json
+python3 audit.py <id> --format json --output report.json
 ```
 
 Exits with code `1` if any Critical or High findings are present — useful in CI pipelines.
@@ -72,9 +75,10 @@ List all installed Chrome extensions with their names and IDs:
 bash list-extensions.sh
 ```
 
-Then audit one:
+Then pass the ID directly — no need to find the version folder:
+
 ```bash
-python3 audit.py ~/Library/Application\ Support/Google/Chrome/Default/Extensions/<id>/<version>/
+python3 audit.py <extension-id>
 ```
 
 ## Output example
